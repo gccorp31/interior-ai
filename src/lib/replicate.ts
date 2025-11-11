@@ -77,13 +77,20 @@ export async function createPrediction(params: {
       input: params.input,
     };
     
-    // Utiliser "model" si c'est un nom de modèle (contient "/"), sinon "version"
-    if (params.model.includes('/')) {
-      requestBody.model = params.model;
-    } else {
-      // Hash de version (format long)
-      requestBody.version = params.model;
-    }
+    // Détecter si c'est un hash de version (contient ":") ou un nom de modèle simple
+   // Si ça contient ":", c'est un hash de version -> utiliser "version"
+   // Sinon, si ça contient "/", c'est un nom de modèle -> utiliser "model"
+   // Sinon, c'est probablement un hash de version -> utiliser "version"
+   if (params.model.includes(':')) {
+     // Hash de version (format: "model:hash")
+     requestBody.version = params.model;
+   } else if (params.model.includes('/')) {
+     // Nom de modèle simple (format: "owner/model")
+     requestBody.model = params.model;
+   } else {
+     // Hash de version seul (format long sans ":")
+     requestBody.version = params.model;
+   }
     
     // Ajouter webhook uniquement s'il est défini et valide (HTTPS)
     if (params.webhook && params.webhook.startsWith('https://')) {
